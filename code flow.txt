@@ -1,0 +1,8 @@
+created User (custom model)
+created User's Manager (custom manager)
+set this in settings.py -> AUTH_USER_MODEL = 'accounts.User'
+production and local settings folder created
+installed python-dotenv and configured database in both settings
+configured psycopg2 database
+
+register, activate
