@@ -49,7 +49,7 @@ class LoginView(View):
 
         email = form.cleaned_data.get('email')
         user = get_object_or_404(User, email=email)
-        login(request, user)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
         return JsonResponse({'message': 'Logged In.'})
 
