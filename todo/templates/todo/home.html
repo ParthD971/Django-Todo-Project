@@ -1,0 +1,8 @@
+
+
+{% if user.is_authenticated %}
+    email: {{ user.email }}
+    <a href="{% url 'logout' %}">Logout</a><br>
+{% else %}
+    <a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
+{% endif %}

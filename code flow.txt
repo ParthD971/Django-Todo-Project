@@ -5,4 +5,6 @@ production and local settings folder created
 installed python-dotenv and configured database in both settings
 configured psycopg2 database
 
-register, activate
+register, activate, reset pass, forgot pass, restore pass confirm
+
+social django installation
