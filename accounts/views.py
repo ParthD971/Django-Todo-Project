@@ -3,7 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -108,4 +108,21 @@ class ForgotPasswordView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class RestorePasswordConfirmView(View):
     def post(self, request, uidb64=None, token=None, *args, **kwargs):
-        return JsonResponse({'message': 'Done'})
+        form = PasswordResetForm(request.POST)
+
+        if not form.is_valid():
+            return JsonResponse(dict(form.errors.items()))
+        try:
+            uid = urlsafe_base64_decode(uidb64)
+            user = User.objects.get(pk=uid)
+            is_token_valid = default_token_generator.check_token(user, token)
+            if is_token_valid:
+                form.save(user=user)
+                logout(request)
+                return JsonResponse({'message': 'Password reset successful.'})
+            return JsonResponse({'error': 'Invalid Link.'})
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+            return JsonResponse({'error': 'Invalid Link.'})
+
+
+

@@ -19,7 +19,7 @@ urlpatterns = [
     path('password-reset/', PasswordResetView.as_view(), name='password-reset'),
 
     path('forgot-password/', ForgotPasswordView.as_view(), name='password-reset'),
-    path('forgot-password/<uidb64>/<token>/', RestorePasswordConfirmView.as_view(), name='restore_password_confirm'),
+    path('restore-password/<uidb64>/<token>/', RestorePasswordConfirmView.as_view(), name='restore_password_confirm'),
 
     path('activate/<code>/', ActivateView.as_view(), name='activate'),
     path('resent-activation-code/', ResendActivationCodeView.as_view(), name='resend-activation-code'),
