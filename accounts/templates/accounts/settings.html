@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h2>Settings</h2>
+
+            {% if github_login %}
+            <h3>GitHub</h3>
+                {% if can_disconnect %}
+                    <form method="post" action="{% url 'social:disconnect' 'github' %}?next={{ request.path }}">
+                        {% csrf_token %}
+                        <button type="submit">Disconnect from GitHub</button>
+                    </form>
+                {% else %}
+                    <button type="button" disabled>Disconnect from GitHub</button>
+                    <p style="color: red">You must <a href="{% url 'password' %}">define a password</a> for your account before disconnecting from Github.</p>
+                {% endif %}
+            {% endif %}
+
+
+            {% if twitter_login %}
+            <h3>Twitter</h3>
+                    {% if can_disconnect %}
+                        <form method="post" action="{% url 'social:disconnect' 'twitter' %}?next={{ request.path }}">
+                            {% csrf_token %}
+                            <button type="submit">Disconnect from Twitter</button>
+                        </form>
+                    {% else %}
+                        <button type="button" disabled>Disconnect from Twitter</button>
+                        <p style="color: red">You must <a href="{% url 'password' %}">define a password</a> for your account before disconnecting from Twitter.</p>
+                    {% endif %}
+            {% endif %}
+
+
+            {% if facebook_login %}
+            <h3>Facebook</h3>
+                    {% if can_disconnect %}
+                        <form method="post" action="{% url 'social:disconnect' 'facebook' %}?next={{ request.path }}">
+                            {% csrf_token %}
+                            <button type="submit">Disconnect from Facebook</button>
+                        </form>
+                    {% else %}
+                        <button type="button" disabled>Disconnect from Facebook</button>
+                        <p style="color: red">You must <a href="{% url 'password' %}">define a password</a> for your account before disconnecting from Facebook.</p>
+                    {% endif %}
+            {% endif %}
+
+
+            {% if google_login %}
+            <h3>Google</h3>
+                    {% if can_disconnect %}
+                        <form method="post" action="{% url 'social:disconnect' 'google-oauth2' %}?next={{ request.path }}">
+                            {% csrf_token %}
+                            <button type="submit">Disconnect from Google</button>
+                        </form>
+                    {% else %}
+                        <button type="button" disabled>Disconnect from Google</button>
+                        <p style="color: red">You must <a href="{% url 'password' %}">define a password</a> for your account before disconnecting from Facebook.</p>
+                    {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
