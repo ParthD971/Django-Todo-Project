@@ -2,19 +2,15 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse
 
-from .forms import CreateUpdateTodoForm, CreateUpdateTaskForm
-from .models import Todo, Task, SubTask
+from .forms import CreateUpdateTodoForm, CreateUpdateTaskForm, CreateSubTaskUsingIdsForm, CreateSubTaskUsingDataForm
+from .models import Todo, Task
 
 
 def home(request):
     return render(request, template_name='todo/home.html')
 
 
-class ListCreateTodoAPI(View):
-    def get(self, request):
-        data = Todo.queryset_to_list_of_dict(queryset=Todo.objects.order_by('id').prefetch_related('tasks').all())
-        return JsonResponse(data, safe=False)
-
+class CreateTodoAPI(View):
     def post(self, request):
         form = CreateUpdateTodoForm(request.POST)
         if form.is_valid():
@@ -38,20 +34,19 @@ class UpdateDeleteTodoAPI(View):
         return JsonResponse(form.errors)
 
 
-class ListCreateTaskAPI(View):
-    def get(self, request):
-        data = Task.queryset_to_list_of_dict(queryset=Task.objects.order_by('id').all())
-        return JsonResponse(data, safe=False)
-
+class CreateTaskAPI(View):
     def post(self, request):
         todo_id = request.GET.get('todo-id', None)
         if not todo_id or todo_id.strip() == '':
             return JsonResponse({'error': 'todo-id in get parameters is missing.'})
 
         todo = get_object_or_404(Todo, id=todo_id)
-        form = CreateUpdateTaskForm(request.POST)
+
+        data = request.POST.copy()
+        data['todo'] = todo
+        form = CreateUpdateTaskForm(data)
         if form.is_valid():
-            task = form.save(todo=todo)
+            task = form.save()
             return JsonResponse(task.to_dict())
         return JsonResponse(form.errors)
 
@@ -63,16 +58,41 @@ class UpdateDeleteTaskAPI(View):
         return JsonResponse({'message': 'Task deleted successfully.'})
 
     def post(self, request, *args, **kwargs):
+        print(request.POST.get('is_subtask', False))
         task = get_object_or_404(Task, id=int(kwargs['id']))
+        todo = task.todo
 
-        todo_id = request.POST.get('todo', None)
-        if todo_id:
-            todo = get_object_or_404(Todo, id=todo_id)
-        else:
-            todo = task.todo
-
-        form = CreateUpdateTaskForm(request.POST, instance=task)
+        data = Task.fill_data_from_instance(request.POST, instance=task)
+        form = CreateUpdateTaskForm(data, instance=task)
         if form.is_valid():
-            task = form.save(todo=todo)
+            task = form.save(todo=todo, is_subtask=request.POST.get('is_subtask', None))
             return JsonResponse(task.to_dict())
         return JsonResponse(form.errors)
+
+
+class CreateSubClassUsingIdsAPI(View):
+    def post(self, request):
+        form = CreateSubTaskUsingIdsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'message': 'Created successfully'})
+        return JsonResponse(form.errors)
+
+
+class CreateSubClassUsingDataAPI(View):
+    def post(self, request):
+        todo_id = request.GET.get('todo-id', None)
+        if not todo_id or todo_id.strip() == '':
+            return JsonResponse({'error': 'todo-id in get parameters is missing.'})
+
+        todo = get_object_or_404(Todo, id=todo_id)
+
+        data = request.POST.copy()
+        data['todo'] = todo
+
+        form = CreateSubTaskUsingDataForm(data)
+        if form.is_valid():
+            sub_task_obj = form.save()
+            return JsonResponse(sub_task_obj.sub_task.to_dict())
+        return JsonResponse(form.errors)
+
