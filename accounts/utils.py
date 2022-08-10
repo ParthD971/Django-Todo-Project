@@ -1,15 +1,14 @@
-from django.conf import settings
-from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+from .tasks import send_mail_task
 
 
 def send_mail(to, template, context):
     html_content = render_to_string(f'accounts/emails/{template}.html', context)
 
-    msg = EmailMessage(context['subject'], html_content, to=[to])
-    msg.send()
+    send_mail_task.delay(context['subject'], html_content, to)
 
 
 def send_activation_email(request, email, code):

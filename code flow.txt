@@ -57,3 +57,18 @@ Authorised redirect URIs - http://localhost:8000/oauth/complete/google-plus/
 
 middleware for redirect if anybody try to use direct oauth urls
 pages and views for setting, password, login, register
+
+todo app apis
+
+celary for send email and schedule email for remainder
+- redis
+    -> redis-server
+    -> service redis-server stop
+    -> service redis-server restart
+    -> service redis-server status
+- celary
+    -> celery -A core worker --pool=solo -l info
+    -> celery -A core worker -l info
+    -> celery -A core worker
+- celary beat
+    ->  celery -A core beat -l INFO

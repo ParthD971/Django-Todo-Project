@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'social_django',
     "crispy_forms",
     "crispy_bootstrap5",
+    'django_celery_results',
+    'django_celery_beat',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -207,3 +209,15 @@ EMAIL_PORT = 587
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_RESULT_BACKEND = 'django-db'
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# CELERY_RESULT_BACKEND = "redis://localhost:6379"

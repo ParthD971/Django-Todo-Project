@@ -5,21 +5,25 @@ from django.http import JsonResponse
 from .forms import CreateUpdateTodoForm, CreateUpdateTaskForm, CreateSubTaskUsingIdsForm, CreateSubTaskUsingDataForm
 from .models import Todo, Task
 
+from accounts.mixin import AnonymousUserRequired, LoginRequiredForApiMixin
+
 
 def home(request):
     return render(request, template_name='todo/home.html')
 
 
-class CreateTodoAPI(View):
+class CreateTodoAPI(LoginRequiredForApiMixin, View):
     def post(self, request):
-        form = CreateUpdateTodoForm(request.POST)
+        data = request.POST.copy()
+        data['owner'] = request.user
+        form = CreateUpdateTodoForm(data)
         if form.is_valid():
             todo = form.save()
             return JsonResponse(todo.to_dict())
         return JsonResponse(form.errors)
 
 
-class UpdateDeleteTodoAPI(View):
+class UpdateDeleteTodoAPI(LoginRequiredForApiMixin, View):
     def get(self, request, *args, **kwargs):
         todo = get_object_or_404(Todo, id=int(kwargs['id']))
         todo.delete()
@@ -27,14 +31,16 @@ class UpdateDeleteTodoAPI(View):
 
     def post(self, request, *args, **kwargs):
         todo = get_object_or_404(Todo, id=int(kwargs['id']))
-        form = CreateUpdateTodoForm(request.POST, instance=todo)
+        data = request.POST.copy()
+        data['owner'] = request.user
+        form = CreateUpdateTodoForm(data, instance=todo)
         if form.is_valid():
             todo = form.save()
             return JsonResponse(todo.to_dict())
         return JsonResponse(form.errors)
 
 
-class CreateTaskAPI(View):
+class CreateTaskAPI(LoginRequiredForApiMixin, View):
     def post(self, request):
         todo_id = request.GET.get('todo-id', None)
         if not todo_id or todo_id.strip() == '':
@@ -51,14 +57,13 @@ class CreateTaskAPI(View):
         return JsonResponse(form.errors)
 
 
-class UpdateDeleteTaskAPI(View):
+class UpdateDeleteTaskAPI(LoginRequiredForApiMixin, View):
     def get(self, request, *args, **kwargs):
         task = get_object_or_404(Task, id=int(kwargs['id']))
         task.delete()
         return JsonResponse({'message': 'Task deleted successfully.'})
 
     def post(self, request, *args, **kwargs):
-        print(request.POST.get('is_subtask', False))
         task = get_object_or_404(Task, id=int(kwargs['id']))
         todo = task.todo
 
@@ -70,7 +75,7 @@ class UpdateDeleteTaskAPI(View):
         return JsonResponse(form.errors)
 
 
-class CreateSubClassUsingIdsAPI(View):
+class CreateSubClassUsingIdsAPI(LoginRequiredForApiMixin, View):
     def post(self, request):
         form = CreateSubTaskUsingIdsForm(request.POST)
         if form.is_valid():
@@ -79,7 +84,7 @@ class CreateSubClassUsingIdsAPI(View):
         return JsonResponse(form.errors)
 
 
-class CreateSubClassUsingDataAPI(View):
+class CreateSubClassUsingDataAPI(LoginRequiredForApiMixin, View):
     def post(self, request):
         todo_id = request.GET.get('todo-id', None)
         if not todo_id or todo_id.strip() == '':

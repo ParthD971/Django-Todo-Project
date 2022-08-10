@@ -1,10 +1,12 @@
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404, render, redirect
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from social_django.models import UserSocialAuth
 
 from .forms import RegisterForm, LoginForm, ResendActivationCodeForm, PasswordResetForm, ForgotPasswordForm, \
@@ -42,6 +44,11 @@ class ActivateApi(View):
 
 
 class LoginApi(AnonymousUserRequired, View):
+    # Code to automatically set csrf token in postman
+    # @method_decorator(csrf_exempt)
+    # def dispatch(self, request, *args, **kwargs):
+    #     return super(LoginApi, self).dispatch(request, *args, **kwargs)
+
     def post(self, request, *args, **kwargs):
         form = LoginForm(request.POST)
 
