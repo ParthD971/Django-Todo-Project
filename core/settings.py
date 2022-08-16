@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # PROJECT APPS
     'todo.apps.TodoConfig',
     'accounts.apps.AccountsConfig',
+    'todo_in_drf.apps.TodoInDrfConfig',
 
     # THIRD PARTY APPS
     'social_django',
