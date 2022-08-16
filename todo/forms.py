@@ -1,11 +1,21 @@
-from datetime import datetime, date
-
 from django import forms
+from django.shortcuts import get_object_or_404
 
 from .models import Todo, Task, SubTask
 
 
 class CreateUpdateTodoForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        """
+        For Updating todo
+        :param kwargs: instance_id
+        """
+        todo_id = kwargs.pop('instance_id', None)
+        if todo_id:
+            todo = get_object_or_404(Todo, id=todo_id)
+            kwargs['instance'] = todo
+        super(CreateUpdateTodoForm, self).__init__(*args, **kwargs)
+
     class Meta:
         model = Todo
         fields = '__all__'
@@ -21,8 +31,11 @@ class CreateUpdateTaskForm(forms.ModelForm):
 
     def save(self, **kwargs):
         todo = kwargs.pop('todo', None)
+        # check is is_subtask parameter is False or not
         is_subtask = str(kwargs.pop('is_subtask', None)) != 'False'
 
+        # while updating, if task is subtask and changed to main task
+        # or todo of task(is_subtask=True) is changed
         if self.instance.id is not None and \
                 (self.instance.is_subtask and not is_subtask) or \
                 (self.instance.todo != todo and self.instance.is_subtask):
@@ -30,6 +43,9 @@ class CreateUpdateTaskForm(forms.ModelForm):
             self.instance.parent_task.delete()
 
         obj = super(CreateUpdateTaskForm, self).save(**kwargs)
+
+        # while updating, if task is subtask and changed to main task then 0 times loop
+        # and when task is main task and its todo is changed then todos of all its sub-task is changed if any.
         if self.instance.id is not None:
             for sub_task_obj in self.instance.sub_tasks.all():
                 sub_task = sub_task_obj.sub_task

@@ -9,12 +9,19 @@ class Todo(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Todo: " + str(self.id) + ", Title: " + str(self.title)
+        data = {
+            'Todo': self.id,
+            'Title': self.title,
+            'Owner': self.owner.email,
+
+        }
+        return " | ".join([k+": "+str(v) for k, v in data.items()])
 
     def to_dict(self):
         return {
             'id': self.id,
-            'title': self.title
+            'title': self.title,
+            'owner': self.owner.email,
         }
 
     def get_tasks_as_list(self):
@@ -27,9 +34,14 @@ class Todo(models.Model):
         todos = []
         for todo in queryset:
             data = todo.to_dict()
-            data['tasks'] = todo.get_tasks_as_list()
+            data['tasks'] = Task.queryset_to_list_of_dict(queryset=todo.tasks.order_by('id'))
             todos.append(data)
         return todos
+
+    @classmethod
+    def delete_todo(cls, todo_id=None):
+        todo = get_object_or_404(cls, id=int(todo_id))
+        todo.delete()
 
 
 class Task(models.Model):
@@ -41,7 +53,11 @@ class Task(models.Model):
     todo = models.ForeignKey(Todo, related_name='tasks', on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Todo: " + str(self.todo.id) + ", Current-task: " + str(self.id)
+        data = {
+            'Todo': self.todo.id,
+            'Current-task': self.id,
+        }
+        return " | ".join([k + ": " + str(v) for k, v in data.items()])
 
     def to_dict(self):
         data = {
@@ -64,7 +80,9 @@ class Task(models.Model):
         return [task.to_dict() for task in queryset]
 
     @classmethod
-    def fill_data_from_instance(cls, data, instance):
+    def fill_data_from_instance(cls, data, instance_id=None):
+        instance = get_object_or_404(Task, id=instance_id)
+
         data_dict = data.copy()
         data_dict['content'] = data.get('content', instance.content)
         data_dict['details'] = data.get('details', instance.details)
@@ -76,7 +94,12 @@ class Task(models.Model):
             data_dict['todo'] = todo
         else:
             data_dict['todo'] = instance.todo
-        return data_dict
+        return data_dict, instance
+
+    @classmethod
+    def delete_task(cls, task_id=None):
+        task = get_object_or_404(cls, id=int(task_id))
+        task.delete()
 
 
 class SubTask(models.Model):
@@ -84,9 +107,12 @@ class SubTask(models.Model):
     sub_task = models.OneToOneField(Task, related_name='parent_task', on_delete=models.CASCADE)
 
     def __str__(self):
-        return "Todo: " + str(self.task.todo.id) + ", Task: " + \
-               str(self.task.id) + ", Sub-task: " + \
-               str(self.sub_task.id)
+        data = {
+            'Todo': self.task.todo.id,
+            'Task': self.task.id,
+            'Sub-task': self.sub_task.id,
+        }
+        return " | ".join([k + ": " + str(v) for k, v in data.items()])
 
     def to_dict(self):
         data = {
@@ -96,9 +122,9 @@ class SubTask(models.Model):
         }
         return data
 
-    @classmethod
-    def queryset_to_list_of_dict(cls, queryset):
-        return [sub_task.to_dict() for sub_task in queryset]
+    # @classmethod
+    # def queryset_to_list_of_dict(cls, queryset):
+    #     return [sub_task.to_dict() for sub_task in queryset]
 
 # 2 Aspects not covered:
     # 1: If task is sub-task of its own

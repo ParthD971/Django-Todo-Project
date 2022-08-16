@@ -5,8 +5,8 @@ from .views import (
     UpdateDeleteTodoAPI,
     CreateTaskAPI,
     UpdateDeleteTaskAPI,
-    CreateSubClassUsingIdsAPI,
-    CreateSubClassUsingDataAPI,
+    CreateSubTaskUsingIdsAPI,
+    CreateSubTaskUsingDataAPI,
 )
 
 urlpatterns = [
@@ -17,6 +17,6 @@ urlpatterns = [
     path('task/', CreateTaskAPI.as_view(), name='task-create-api'),
     path('task/<id>/', UpdateDeleteTaskAPI.as_view(), name='task-update-delete-api'),
 
-    path('sub-task-ids/', CreateSubClassUsingIdsAPI.as_view(), name='sub-task-create-ids-api'),
-    path('sub-task-data/', CreateSubClassUsingDataAPI.as_view(), name='sub-task-create-data-api'),
+    path('sub-task-ids/', CreateSubTaskUsingIdsAPI.as_view(), name='sub-task-create-ids-api'),
+    path('sub-task-data/', CreateSubTaskUsingDataAPI.as_view(), name='sub-task-create-data-api'),
 ]
