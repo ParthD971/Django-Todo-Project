@@ -1,6 +1,4 @@
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,12 +22,12 @@ class CreateTodoAPI(APIView):
 
 
 class UpdateDeleteTodoAPI(APIView):
-    def get(self, request, **kwargs):
+    def delete(self, request, **kwargs):
         Todo.delete_todo(todo_id=kwargs['id'])
         message = {'message': 'Todo deleted successfully.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, **kwargs):
+    def put(self, request, **kwargs):
         serializer = CreateUpdateTodoSerializer(
             data=get_dic(data=request.POST, owner=request.user),
             instance_id=int(kwargs['id'])
@@ -50,12 +48,12 @@ class CreateTaskAPI(APIView):
 
 
 class UpdateDeleteTaskAPI(APIView):
-    def get(self, request, **kwargs):
+    def delete(self, request, **kwargs):
         Task.delete_task(task_id=int(kwargs['id']))
         message = {'message': 'Task deleted successfully.'}
         return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, **kwargs):
+    def put(self, request, **kwargs):
         data, task = Task.fill_data_from_instance(request.POST, instance_id=int(kwargs['id']))
         old_todo = task.todo
 
@@ -74,7 +72,7 @@ class CreateSubTaskUsingIdsAPI(APIView):
         if serializer.is_valid():
             serializer.save()
             message = {'message': 'Created sub-task successfully.'}
-            return Response(message, status=status.HTTP_200_OK)
+            return Response(message, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -87,5 +85,5 @@ class CreateSubTaskUsingDataAPI(APIView):
         serializer = CreateSubTaskUsingDataSerializer(data=get_dic(data=request.POST, todo=todo.id))
         if serializer.is_valid():
             instance = serializer.save()
-            return Response(instance.sub_task.to_dict(), status=status.HTTP_200_OK)
+            return Response(instance.sub_task.to_dict(), status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

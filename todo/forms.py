@@ -34,6 +34,14 @@ class CreateUpdateTaskForm(forms.ModelForm):
         # check is is_subtask parameter is False or not
         is_subtask = str(kwargs.pop('is_subtask', None)) != 'False'
 
+        # If task updated is main task and its is_complete status is changed to true
+        main_task_is_completed_status = False
+        if self.instance.id is not None and \
+                not self.instance.is_subtask and \
+                not self.instance.is_completed and \
+                self.cleaned_data['is_completed']:
+            main_task_is_completed_status = True
+
         # while updating, if task is subtask and changed to main task
         # or todo of task(is_subtask=True) is changed
         if self.instance.id is not None and \
@@ -50,6 +58,8 @@ class CreateUpdateTaskForm(forms.ModelForm):
             for sub_task_obj in self.instance.sub_tasks.all():
                 sub_task = sub_task_obj.sub_task
                 sub_task.todo = obj.todo
+                if main_task_is_completed_status:
+                    sub_task.is_completed = True
                 sub_task.save()
         return obj
 
