@@ -157,6 +157,7 @@ AUTHENTICATION_BACKENDS = (
     'social_core.backends.twitter.TwitterOAuth',
     'social_core.backends.facebook.FacebookOAuth2',
     'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.instagram.InstagramOAuth2',
 
     'django.contrib.auth.backends.ModelBackend',
 )
@@ -201,6 +202,21 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
+
+
+# SOCIAL_AUTH_INSTAGRAM_KEY = os.environ.get('SOCIAL_AUTH_INSTAGRAM_KEY')
+# SOCIAL_AUTH_INSTAGRAM_SECRET = os.environ.get('SOCIAL_AUTH_INSTAGRAM_SECRET')
+#
+# SOCIAL_AUTH_INSTAGRAM_SCOPE = ['email', 'user_link']
+# SOCIAL_AUTH_INSTAGRAM_PROFILE_EXTRA_PARAMS = {
+#     'fields': 'id, name, email'
+# }
+# SOCIAL_AUTH_INSTAGRAM_EXTRA_DATA = [
+#     ('name', 'name'),
+#     ('email', 'email'),
+# ]
+#
+# SOCIAL_AUTH_INSTAGRAM_AUTH_EXTRA_ARGUMENTS = {'scope': 'email user_profile'}
 
 # EMAIL SETTINGS
 EMAIL_USE_TLS = True
