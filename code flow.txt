@@ -7,4 +7,68 @@ configured psycopg2 database
 
 register, activate, reset pass, forgot pass, restore pass confirm
 
-social django installation
+social django installation, below are settings
+INSTALLED_APPS = [
+    # THIRD PARTY APPS
+    'social_django',
+]
+MIDDLEWARE = [
+    # SOCIAL AUTHENTICATION
+    'social_django.middleware.SocialAuthExceptionMiddleware',
+]
+TEMPLATES = [
+    {
+        'OPTIONS': {
+            'context_processors': [
+                # SOCIAL AUTHENTICATION
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+            ],
+        },
+    },
+]
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
+For GitHub:
+- Create app in developers settings -> OAuth Apps -> create new app
+    Homepage URL: http://localhost:8000
+    Authorization callback URL: http://localhost:8000/oauth/complete/github/
+    -> get credentials and paste in settings as (SOCIAL_AUTH_GITHUB_KEY, SOCIAL_AUTH_GITHUB_SECRET)
+    -> for email to allow creation of user (SOCIAL_AUTH_GITHUB_SCOPE)
+
+For Facebook
+- Create app in developers settings
+    Website URL: http://localhost:8000
+    App Domain : localhost
+
+For Twitter
+- Create app in developers settings
+    Redirect URL: http://mywebsite:8000/oauth/complete/twitter/
+    Website URL: https://twitter.com/ParthD971
+
+For Google
+Homepage link - http://localhost:8000/
+Privacy Policy link and Terms of Service link - http://example.com/
+Authorised domains - example.com
+Authorised redirect URIs - http://localhost:8000/oauth/complete/google-plus/
+
+middleware for redirect if anybody try to use direct oauth urls
+pages and views for setting, password, login, register
+
+todo app apis
+
+celary for send email and schedule email for remainder
+- redis
+    -> redis-server
+    -> service redis-server stop
+    -> service redis-server restart
+    -> service redis-server status
+- celary
+    -> celery -A core worker --pool=solo -l info
+    -> celery -A core worker -l info
+    -> celery -A core worker
+- celary beat
+    ->  celery -A core beat -l INFO

@@ -122,3 +122,32 @@ class ForgotPasswordForm(forms.Form):
         return email
 
 
+class PasswordChangeForm(forms.Form):
+    password1 = forms.CharField(required=True)
+    password2 = forms.CharField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(PasswordChangeForm, self).__init__(*args, **kwargs)
+
+    def clean_password1(self):
+        password1 = self.data.get('password1')
+
+        if len(password1) < 5 or len(password1) > 15:
+            self.add_error('password1', 'The length of password must be between 5 to 15.')
+
+        if not re.findall('\d', password1):
+            self.add_error('password1', 'The password must contain at least 1 digit, 0-9.')
+        return password1
+
+    def clean_password2(self):
+        password2 = self.data.get('password2')
+        password1 = self.data.get('password1')
+        if password1 != password2:
+            self.add_error('password2', 'The password is not matching.')
+        return password2
+
+    def save(self):
+        password = self.data.get('password1')
+        self.user.set_password(password)
+        self.user.save()
