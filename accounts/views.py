@@ -45,9 +45,9 @@ class ActivateApi(View):
 
 class LoginApi(AnonymousUserRequired, View):
     # Code to automatically set csrf token in postman
-    # @method_decorator(csrf_exempt)
-    # def dispatch(self, request, *args, **kwargs):
-    #     return super(LoginApi, self).dispatch(request, *args, **kwargs)
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginApi, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         form = LoginForm(request.POST)
