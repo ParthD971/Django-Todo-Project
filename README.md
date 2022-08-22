@@ -1,7 +1,8 @@
 # Django Social Authentication
 
-## Install social-auth-app-django social authentication module
+[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/) 
 
+## Install social-auth-app-django social authentication module
 ```console
 pip install social-auth-app-django
 ```
@@ -11,7 +12,7 @@ pip install social-auth-app-django
 #### Update project ```settings.py``` file
 Here, `accounts` is my django app for authentication. 
 
-Also, `accounts.middleware.CustomSocialAuthExceptionMiddleware` is for senario: if user is already logged in through one social auth and tries to logg-in again then this middleware will catches `AuthAlreadyAssociated` this error and redirects to LOGIN_URL page. 
+Also, `accounts.middleware.CustomSocialAuthExceptionMiddleware` is for scenario: if user is already logged in through one social auth and tries to logg-in again then this middleware will catch `AuthAlreadyAssociated` this error and redirects to LOGIN_URL page. 
 
 ```console
 INSTALLED_APPS = [

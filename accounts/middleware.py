@@ -9,4 +9,4 @@ class CustomSocialAuthExceptionMiddleware(SocialAuthExceptionMiddleware):
         if isinstance(exception, AuthAlreadyAssociated):
             url = self.get_redirect_uri(request, exception)
             return redirect(url)
-        super(CustomSocialAuthExceptionMiddleware, self).process_exception(request, exception)
+        return super(CustomSocialAuthExceptionMiddleware, self).process_exception(request, exception)
