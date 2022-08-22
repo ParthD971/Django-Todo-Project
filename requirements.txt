@@ -7,3 +7,5 @@ celery
 redis
 django-celery-results
 django-celery-beat
+djangorestframework
+drf-yasg
