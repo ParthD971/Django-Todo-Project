@@ -1,9 +1,12 @@
+import os
 import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .managers import UserManager
+import datetime
 
 
 class User(AbstractUser):
@@ -46,6 +49,12 @@ class Activation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     code = models.CharField(max_length=36, unique=True)
     email = models.EmailField(blank=True)
+
+    def is_valid(self):
+        buffer = int(os.environ.get('BUFFER_TIME', '3600'))
+        if (self.created_at + datetime.timedelta(seconds=buffer)) >= timezone.now():
+            return True
+        return False
 
     def activate(self):
         user = self.user
