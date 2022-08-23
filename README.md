@@ -1,10 +1,18 @@
 # Django Social Authentication
 
+[![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/) 
+
+## Install social-auth-app-django social authentication module
+```console
+pip install social-auth-app-django
+```
+
 ## General Settings
 
-
-
 #### Update project ```settings.py``` file
+Here, `accounts` is my django app for authentication. 
+
+Also, `accounts.middleware.CustomSocialAuthExceptionMiddleware` is for scenario: if user is already logged in through one social auth and tries to logg-in again then this middleware will catch `AuthAlreadyAssociated` this error and redirects to LOGIN_URL page. 
 
 ```console
 INSTALLED_APPS = [
@@ -95,6 +103,7 @@ SOCIAL_AUTH_PIPELINE = (
 
 
 ### Update project ```urls.py``` file
+This is path for integrating social authentication.
 
 ```console
 urlpatterns = [
@@ -104,6 +113,7 @@ urlpatterns = [
 ```
 
 #### Update in ```html``` file
+Paste this link in any of html page for authenticating through social auth.
 
 ```console
 <a href="{% url 'social:begin' 'github' %}">GitHub</a>
@@ -114,12 +124,6 @@ urlpatterns = [
 
 ### Development
 
-#### Running Server
-
-```console
-python manage.py runserver
-```
-
 #### Migrating Databases
 
 When changing models, we have to update the database. Migrations help us track changes.
@@ -127,4 +131,10 @@ When changing models, we have to update the database. Migrations help us track c
 ```console
 python manage.py makemigrations
 python manage.py migrate
+```
+
+#### Running Server
+
+```console
+python manage.py runserver
 ```

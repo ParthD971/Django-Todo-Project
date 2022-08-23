@@ -17,6 +17,12 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
     content = serializers.CharField(max_length=500, required=False, allow_null=True)
 
     def validate(self, attrs):
+        """
+        This method validates that is this serializer is used for create query
+        then 'content' is required else its optional.
+        :param attrs: dictionary of given data
+        :return: if data is correct then dictionary of data else if error then raises Validation error.
+        """
         is_updating = self.context.get('is_updating', None)
         if not is_updating and not attrs.get('content', None):
             raise serializers.ValidationError({'content': 'This Field is required.'})
@@ -65,6 +71,11 @@ class TaskForTodoListSerializer(serializers.ModelSerializer):
     sub_tasks = serializers.SerializerMethodField(source='sub_tasks', read_only=True)
 
     def to_representation(self, obj):
+        """
+        If this serializer is user for task object(which is subtask) then remove 'sub_tasks' attribute.
+        :param obj: Task object
+        :return: representation of each field as dictionary
+        """
         ret = super(TaskForTodoListSerializer, self).to_representation(obj)
         if obj.is_subtask:
             ret.pop('sub_tasks')
@@ -99,6 +110,7 @@ class CreateUpdateTodoSerializer(serializers.ModelSerializer):
         return TaskForTodoListSerializer(obj.tasks.filter(is_subtask=False), many=True).data
 
     def save(self, **kwargs):
+        # add 'owner' to validated data as current user.
         self.validated_data.update({
             'owner': self.context.get('request').user
         })
@@ -188,7 +200,8 @@ class CreateSubTaskUsingDataSerializer(serializers.ModelSerializer):
 
     def validate_task(self, task_id):
         request = self.context['request']
-        todo = Todo.objects.get(id=int(self.initial_data['todo']))
+        todo = Todo.objects.filter(id=int(self.initial_data['todo']))
+
         try:
             task = Task.objects.get(id=task_id, todo__owner=request.user)
         except Task.DoesNotExist:
@@ -197,7 +210,7 @@ class CreateSubTaskUsingDataSerializer(serializers.ModelSerializer):
         if task and task.is_subtask:
             raise serializers.ValidationError('This task is sub task of another task so it is invalid.')
 
-        if task and task.todo.id != todo.id:
+        if task and todo.exists() and task.todo.id != todo.first().id:
             raise serializers.ValidationError('Todo for task and sub task does not match.')
 
         return task_id

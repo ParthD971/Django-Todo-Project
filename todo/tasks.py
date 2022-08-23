@@ -12,7 +12,6 @@ from .models import Task
 @shared_task
 def send_reminder_mail():
     queryset = Task.objects.filter(completion_date=datetime.today().date())
-    print(queryset)
     for obj in queryset:
         context = {
             'subject': _('Task reminder'),

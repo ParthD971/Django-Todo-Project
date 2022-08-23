@@ -19,6 +19,23 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Apis
 class RegisterApi(AnonymousUserRequired, View):
+    """
+    description: This is user register API.
+    data:
+    {
+        [required] email -> string
+        [required] password1 -> string
+        [required] password2 -> string
+    }
+    response:
+    {
+        email: string,
+        password1: string,
+        password2: string,
+        status: string
+    }
+    permission: Must Be Anonymous user
+    """
     def post(self, request, *args, **kwargs):
         form = RegisterForm(request.POST)
         if not form.is_valid():
@@ -34,6 +51,15 @@ class RegisterApi(AnonymousUserRequired, View):
 
 
 class ActivateApi(View):
+    """
+    description: This is user's email activation API.
+    request: requires one parameter -> code
+    response:
+    {
+        'message': 'Account activated.'
+    }
+    :raise: 404 object not found if code is incorrect.
+    """
     def get(self, request, code=None, *args, **kwargs):
         act = get_object_or_404(Activation, code=code)
 
@@ -44,6 +70,20 @@ class ActivateApi(View):
 
 
 class LoginApi(AnonymousUserRequired, View):
+    """
+    description: This is user login API.
+    data:
+    {
+        [required] email -> string
+        [required] password -> string
+    }
+    response:
+    {
+        'message': 'Logged In.'
+    }
+    permission: Must Be Anonymous user
+    """
+
     # Code to automatically set csrf token in postman
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -63,12 +103,34 @@ class LoginApi(AnonymousUserRequired, View):
 
 
 class LogoutApi(LoginRequiredForApiMixin, View):
+    """
+    description: This is user logout API.
+    request: requires user object.
+    response:
+    {
+        'message': 'Logged Out.'
+    }
+    permission: Must Be LoggedIn user
+    """
     def get(self, request, *args, **kwargs):
         logout(request)
         return JsonResponse({'message': 'Logged Out.'})
 
 
 class ResendActivationCodeApi(AnonymousUserRequired, View):
+    """
+    description: This is API for resending activation email.
+    request: requires user object.
+    data:
+    {
+        [required] email: string
+    }
+    response:
+    {
+        'message': 'Re-sent account activation code.'
+    }
+    permission: Must Be Anonymous user
+    """
     def post(self, request, *args, **kwargs):
         form = ResendActivationCodeForm(request.POST)
 
@@ -83,8 +145,21 @@ class ResendActivationCodeApi(AnonymousUserRequired, View):
 
 
 class PasswordResetApi(LoginRequiredForApiMixin, View):
+    """
+    description: This is API for resetting password.
+    data:
+    {
+        [required] password1: string
+        [required] password2: string
+    }
+    response:
+    {
+        'message': 'Password reset successful. You must login again.'
+    }
+    permission: Must Be LoggedIn user
+    """
     def post(self, request, *args, **kwargs):
-        form = PasswordResetForm(request.POST)
+        form = PasswordResetForm(request.POST, user=request.user)
 
         if not form.is_valid():
             return JsonResponse(dict(form.errors.items()))
@@ -95,6 +170,18 @@ class PasswordResetApi(LoginRequiredForApiMixin, View):
 
 
 class ForgotPasswordApi(AnonymousUserRequired, View):
+    """
+    description: This is API for forgot password.
+    data:
+    {
+        [required] email: string
+    }
+    response:
+    {
+        'message': 'Link for password reset sent to your email.'
+    }
+    permission: Must Be Anonymous user
+    """
     def post(self, request, *args, **kwargs):
         form = ForgotPasswordForm(request.POST)
 
@@ -111,6 +198,20 @@ class ForgotPasswordApi(AnonymousUserRequired, View):
 
 
 class RestorePasswordConfirmApi(AnonymousUserRequired, View):
+    """
+    description: This is API for restoring password.
+    request: requires uidb64 and token as parameters.
+    data:
+    {
+        [required] password1: string
+        [required] password2: string
+    }
+    response:
+    {
+        'message': 'Password reset successful.'
+    }
+    permission: Must Be Anonymous user
+    """
     def post(self, request, uidb64=None, token=None, *args, **kwargs):
         form = PasswordResetForm(request.POST)
 
@@ -130,6 +231,15 @@ class RestorePasswordConfirmApi(AnonymousUserRequired, View):
 
 
 class DeactivateAccountApi(LoginRequiredForApiMixin, View):
+    """
+    description: This is API for deactivating/removing user account.
+    request: requires user object.
+    response:
+    {
+        'message': 'Account Deactivated.'
+    }
+    permission: Must Be LoggedIn user
+    """
     def get(self, request):
         user = request.user
         user.is_active = False
@@ -140,6 +250,12 @@ class DeactivateAccountApi(LoginRequiredForApiMixin, View):
 
 # Views
 class LoginView(AnonymousUserRequired, View):
+    """
+    description: This is user login view.
+    GET request will display Login Form in login.html page.
+    POST request will make user login if details is valid else login form with error is displayed.
+    permission: Must Be Anonymous user
+    """
     def get(self, request):
         form = LoginForm()
         return render(request, template_name='accounts/login.html', context={'form': form})
@@ -158,6 +274,13 @@ class LoginView(AnonymousUserRequired, View):
 
 
 class RegisterView(AnonymousUserRequired, View):
+    """
+    description: This is user register view.
+    GET request will display Register Form in register.html page.
+    POST request will make user registered if details is valid else register
+    form with error is displayed.
+    permission: Must Be Anonymous user
+    """
     def get(self, request):
         form = RegisterForm()
         return render(request, template_name='accounts/register.html', context={'form': form})
@@ -175,12 +298,22 @@ class RegisterView(AnonymousUserRequired, View):
 
 
 class LogoutView(LoginRequiredMixin, View):
+    """
+    description: This is user logout view.
+    GET request will log out user and redirects to home page.
+    permission: Must Be LoggedIn user
+    """
     def get(self, request):
         logout(request)
         return redirect('home')
 
 
 class SocialAuthManageSetting(LoginRequiredMixin, View):
+    """
+    description: This is managing users social auths.
+    GET request will allow user to add/remove social auth accounts.
+    permission: Must Be LoggedIn user
+    """
     def get(self, request):
         user = request.user
 
@@ -216,6 +349,12 @@ class SocialAuthManageSetting(LoginRequiredMixin, View):
 
 
 class SocialAuthSetPassword(LoginRequiredMixin, View):
+    """
+    description: This is setting password for removing all social auths and setup default user account. 
+    GET request will Password Change form.
+    POST request will set new password to user account if form is valid, else form with error is displayed.
+    permission: Must Be LoggedIn user
+    """
     def get(self, request):
         form = PasswordChangeForm(user=request.user)
         return render(request, 'accounts/password.html', {'form': form})
