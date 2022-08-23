@@ -63,6 +63,9 @@ class ActivateApi(View):
     def get(self, request, code=None, *args, **kwargs):
         act = get_object_or_404(Activation, code=code)
 
+        if not act.is_valid():
+            return JsonResponse({'message': 'Activation code is expired. you can apply for resend activation code.'})
+
         # Activate profile and Remove the activation record
         act.activate()
 
