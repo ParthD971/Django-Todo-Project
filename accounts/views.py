@@ -159,7 +159,7 @@ class PasswordResetApi(LoginRequiredForApiMixin, View):
     permission: Must Be LoggedIn user
     """
     def post(self, request, *args, **kwargs):
-        form = PasswordResetForm(request.POST)
+        form = PasswordResetForm(request.POST, user=request.user)
 
         if not form.is_valid():
             return JsonResponse(dict(form.errors.items()))

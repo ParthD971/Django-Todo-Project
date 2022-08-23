@@ -1,8 +1,9 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from .managers import UserManager
-from django.utils.crypto import get_random_string
 
 
 class User(AbstractUser):
@@ -27,7 +28,7 @@ class User(AbstractUser):
         return User.objects.filter(email=email, is_active=False).exists()
 
     def get_activation_code(self):
-        code = get_random_string(20)
+        code = uuid.uuid4()
 
         act = Activation()
         act.code = code
@@ -43,7 +44,7 @@ class User(AbstractUser):
 class Activation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    code = models.CharField(max_length=20, unique=True)
+    code = models.CharField(max_length=36, unique=True)
     email = models.EmailField(blank=True)
 
     def activate(self):
