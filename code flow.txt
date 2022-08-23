@@ -45,7 +45,7 @@ For Facebook
     App Domain : localhost
 
 For Twitter
-- Create app in developers settings
+- Create app in developers settings (Elevated Access)
     Redirect URL: http://mywebsite:8000/oauth/complete/twitter/
     Website URL: https://twitter.com/ParthD971
 
