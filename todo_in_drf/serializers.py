@@ -1,7 +1,4 @@
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
-
-from accounts.models import User
 from todo.models import Todo, Task, SubTask
 
 
@@ -16,6 +13,13 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
     )
     content = serializers.CharField(max_length=500, required=False, allow_null=True)
 
+    def validate_todo(self, todo):
+        is_updating = self.context.get('is_updating')
+        user = self.context.get('user')
+        if is_updating and todo.owner != user:
+            raise serializers.ValidationError('Todo is invalid.')
+        return todo
+
     def validate(self, attrs):
         """
         This method validates that is this serializer is used for create query
@@ -23,32 +27,30 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
         :param attrs: dictionary of given data
         :return: if data is correct then dictionary of data else if error then raises Validation error.
         """
-        is_updating = self.context.get('is_updating', None)
-        if not is_updating and not attrs.get('content', None):
+        is_updating = self.context.get('is_updating')
+        if not is_updating and not attrs.get('content'):
             raise serializers.ValidationError({'content': 'This Field is required.'})
         return attrs
 
-    def save(self, **kwargs):
+    def update(self, instance, validated_data):
         # check if is_subtask parameter is False or not
-        is_subtask = str(self.context.get('is_subtask', None)) != 'False'
+        is_subtask = str(self.context.get('is_subtask')) != 'False'
 
         # If task updated is main task and its is_complete status is changed to true
         main_task_is_completed_status = False
-        if self.instance is not None and \
-                not self.instance.is_subtask and \
+        if not self.instance.is_subtask and \
                 not self.instance.is_completed and \
-                self.validated_data.get('is_completed', None):
+                self.validated_data.get('is_completed'):
             main_task_is_completed_status = True
 
         # while updating, if task is subtask and changed to main task
         # or todo of task(is_subtask=True) is changed
-        if self.instance is not None:
-            if (self.instance.is_subtask and not is_subtask) or \
-                    (self.instance.todo.id != self.validated_data['todo'] and self.instance.is_subtask):
-                self.instance.is_subtask = False
-                self.instance.parent_task.delete()
+        if (self.instance.is_subtask and not is_subtask) or \
+                (self.instance.todo.id != self.validated_data['todo'] and self.instance.is_subtask):
+            self.instance.is_subtask = False
+            self.instance.parent_task.delete()
 
-        obj = super(CreateUpdateTaskSerializer, self).save(**kwargs)
+        obj = super(CreateUpdateTaskSerializer, self).update(instance, validated_data)
 
         # while updating, if task is subtask and changed to main task then 0 times loop
         # and when task is main task and its todo is changed then todos of all its sub-task is changed if any.
@@ -177,8 +179,8 @@ class CreateSubTaskUsingIdsSerializer(serializers.Serializer):
                 "The SubTask could not be created because the data didn't validate."
             )
 
-        sub_task_id = self.data['sub_task']
-        task = self.data['task']
+        sub_task_id = self.validated_data['sub_task']
+        task = self.validated_data['task']
 
         sub_task_obj = Task.objects.get(id=sub_task_id)
         sub_task_obj.is_subtask = True

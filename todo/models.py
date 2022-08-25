@@ -121,11 +121,3 @@ class SubTask(models.Model):
             'sub task': list(self.task.sub_tasks.values_list('sub_task_id', flat=True)),
         }
         return data
-
-    # @classmethod
-    # def queryset_to_list_of_dict(cls, queryset):
-    #     return [sub_task.to_dict() for sub_task in queryset]
-
-# 2 Aspects not covered:
-    # 1: If task is sub-task of its own
-    # 2: If "task" is "sub-task" and "sub-task" is "task"
