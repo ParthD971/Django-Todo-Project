@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'todo_in_drf.apps.TodoInDrfConfig',
 
     # THIRD PARTY APPS
+    'rest_framework',
     'social_django',
     "crispy_forms",
     "crispy_bootstrap5",
