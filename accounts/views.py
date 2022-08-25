@@ -1,4 +1,5 @@
-from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib import messages
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
@@ -11,14 +12,14 @@ from social_django.models import UserSocialAuth
 
 from .forms import RegisterForm, LoginForm, ResendActivationCodeForm, PasswordResetForm, ForgotPasswordForm, \
     PasswordChangeForm
-from .mixin import AnonymousUserRequired, LoginRequiredForApiMixin
+from .mixin import LoginRequiredForApiMixin
 from .models import Activation, User
 from .utils import send_activation_email, send_reset_password_email
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 # Apis
-class RegisterApi(AnonymousUserRequired, View):
+class RegisterApi(View):
     """
     description: This is user register API.
     data:
@@ -72,7 +73,7 @@ class ActivateApi(View):
         return JsonResponse({'message': 'Account activated.'})
 
 
-class LoginApi(AnonymousUserRequired, View):
+class LoginApi(View):
     """
     description: This is user login API.
     data:
@@ -99,10 +100,12 @@ class LoginApi(AnonymousUserRequired, View):
             return JsonResponse(dict(form.errors.items()))
 
         email = form.cleaned_data.get('email')
-        user = get_object_or_404(User, email=email)
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-        return JsonResponse({'message': 'Logged In.'})
+        password = form.cleaned_data.get('password')
+        user = authenticate(email=email, password=password)
+        if user:
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return JsonResponse({'message': 'Logged In.'})
+        return JsonResponse({'error': 'Invalid credentials.'})
 
 
 class LogoutApi(LoginRequiredForApiMixin, View):
@@ -120,7 +123,7 @@ class LogoutApi(LoginRequiredForApiMixin, View):
         return JsonResponse({'message': 'Logged Out.'})
 
 
-class ResendActivationCodeApi(AnonymousUserRequired, View):
+class ResendActivationCodeApi(View):
     """
     description: This is API for resending activation email.
     request: requires user object.
@@ -172,7 +175,7 @@ class PasswordResetApi(LoginRequiredForApiMixin, View):
         return JsonResponse({'message': 'Password reset successful. You must login again.'})
 
 
-class ForgotPasswordApi(AnonymousUserRequired, View):
+class ForgotPasswordApi(View):
     """
     description: This is API for forgot password.
     data:
@@ -200,7 +203,7 @@ class ForgotPasswordApi(AnonymousUserRequired, View):
         return JsonResponse({'message': 'Link for password reset sent to your email.'})
 
 
-class RestorePasswordConfirmApi(AnonymousUserRequired, View):
+class RestorePasswordConfirmApi(View):
     """
     description: This is API for restoring password.
     request: requires uidb64 and token as parameters.
@@ -252,7 +255,7 @@ class DeactivateAccountApi(LoginRequiredForApiMixin, View):
 
 
 # Views
-class LoginView(AnonymousUserRequired, View):
+class LoginView(View):
     """
     description: This is user login view.
     GET request will display Login Form in login.html page.
@@ -270,13 +273,21 @@ class LoginView(AnonymousUserRequired, View):
             return render(request, template_name='accounts/login.html', context={'form': form})
 
         email = form.cleaned_data.get('email')
-        user = get_object_or_404(User, email=email)
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        password = form.cleaned_data.get('password')
+        user = authenticate(email=email, password=password)
+        if user:
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return redirect('home')
 
-        return redirect('home')
+        messages.error(request, "Invalid credentials.")
+        return render(
+            request,
+            template_name='accounts/login.html',
+            context={'form': form}
+        )
 
 
-class RegisterView(AnonymousUserRequired, View):
+class RegisterView(View):
     """
     description: This is user register view.
     GET request will display Register Form in register.html page.

@@ -174,8 +174,9 @@ class UpdateDeleteTaskAPI(GenericAPIView, mixins.DestroyModelMixin, mixins.Updat
         :return: Updated context for serializer.
         """
         context = super(UpdateDeleteTaskAPI, self).get_serializer_context()
-        context.update({'is_subtask': self.request.data.get('is_subtask', None)})
+        context.update({'is_subtask': self.request.data.get('is_subtask')})
         context.update({'is_updating': self.request.method == 'PUT'})
+        context.update({'user': self.request.user})
         return context
 
     def delete(self, request, *args, **kwargs):
