@@ -56,7 +56,7 @@ class LoginForm(forms.Form):
         if query.exists() and not query.first().check_password(password):
             self.add_error('password', 'The password is incorrect.')
 
-        return email
+        return password
 
 
 class ResendActivationCodeForm(forms.Form):

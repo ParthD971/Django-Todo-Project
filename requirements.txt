@@ -9,3 +9,4 @@ django-celery-results
 django-celery-beat
 djangorestframework
 drf-yasg
+django-debug-toolbar==3.2.1

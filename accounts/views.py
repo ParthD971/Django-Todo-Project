@@ -101,6 +101,7 @@ class LoginApi(View):
 
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
+
         user = authenticate(email=email, password=password)
         if user:
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -274,6 +275,7 @@ class LoginView(View):
 
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
+
         user = authenticate(email=email, password=password)
         if user:
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
