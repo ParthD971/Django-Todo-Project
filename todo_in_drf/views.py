@@ -217,7 +217,6 @@ class CreateSubTaskUsingDataAPI(CreateAPIView):
     """
     description: This View creates subtask from task (which is already created).
     data: For creating sub-task
-    data: For creating task
     {
         [required] content : string
         [optional] details : string

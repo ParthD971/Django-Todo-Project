@@ -55,7 +55,7 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
         # while updating, if task is subtask and changed to main task then 0 times loop
         # and when task is main task and its todo is changed then todos of all its sub-task is changed if any.
         if self.instance is not None:
-            for sub_task_obj in self.instance.sub_tasks.all():
+            for sub_task_obj in self.instance.sub_tasks.select_related('sub_task').all():
                 sub_task = sub_task_obj.sub_task
                 sub_task.todo = obj.todo
                 if main_task_is_completed_status:
@@ -84,7 +84,7 @@ class TaskForTodoListSerializer(serializers.ModelSerializer):
         return ret
 
     def get_sub_tasks(self, obj):
-        sub_tasks = [i.sub_task for i in obj.sub_tasks.all()]
+        sub_tasks = [i.sub_task for i in obj.sub_tasks.select_related('sub_task').all()]
         return TaskForTodoListSerializer(sub_tasks, many=True).data
 
     class Meta:
