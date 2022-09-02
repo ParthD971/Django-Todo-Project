@@ -126,6 +126,16 @@ class CreateTaskAPI(CreateAPIView):
     """
     serializer_class = CreateUpdateTaskSerializer
 
+    def get_serializer_context(self):
+        """
+        Create serializer context.
+        1. user: Passing it to serializer context so that save() method has access to is_subtask attribute.
+        :return: Updated context for serializer.
+        """
+        context = super(CreateTaskAPI, self).get_serializer_context()
+        context.update({'user': self.request.user})
+        return context
+
 
 class UpdateDeleteTaskAPI(GenericAPIView, mixins.DestroyModelMixin, mixins.UpdateModelMixin):
     """
@@ -171,6 +181,8 @@ class UpdateDeleteTaskAPI(GenericAPIView, mixins.DestroyModelMixin, mixins.Updat
         to serializer context so that save() method has access to is_subtask attribute.
         2. is_updating:  If update query is performed so that validate() method can ignore content's
         required validation.
+        3. user: Passing it to serializer context so that save() method has access to is_subtask
+        attribute.
         :return: Updated context for serializer.
         """
         context = super(UpdateDeleteTaskAPI, self).get_serializer_context()

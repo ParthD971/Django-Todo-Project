@@ -14,9 +14,8 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
     content = serializers.CharField(max_length=500, required=False, allow_null=True)
 
     def validate_todo(self, todo):
-        is_updating = self.context.get('is_updating')
         user = self.context.get('user')
-        if is_updating and todo.owner != user:
+        if todo.owner != user:
             raise serializers.ValidationError('Todo is invalid.')
         return todo
 
