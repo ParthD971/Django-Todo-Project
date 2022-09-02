@@ -44,4 +44,5 @@ TODO_ALREADY_SUBTASK_OF_OTHER_TASK = 'This sub-task is already sub-task of anoth
 TODO_TASK_SUBTASK_NOT_MATCHING = 'The todo of task and sub-task is not matching.'
 TODO_SAME_TASK_AND_SUBTASK = 'The task and sub-task cannot be same.'
 TODO_DATA_INVALID = "The SubTask could not be created because the data didn't validate."
-
+TODO_ALREADY_SUBTASK = 'This task already sub-task.'
+TODO_ALREADY_PARENT_TASK = 'The sub-task is parent task, so cannot become sub-task.'

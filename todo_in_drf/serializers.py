@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from core.constants import TODO_INVALID_DATE, TODO_INVALID_ID, TODO_CONTENT_REQUIRED, TODO_TASK_ID_INVALID, \
     TODO_SUBTASK_ID_INVALID, TODO_ALREADY_SUBTASK_OF_TASK, TODO_ALREADY_SUBTASK_OF_OTHER_TASK, \
-    TODO_TASK_SUBTASK_NOT_MATCHING, TODO_SAME_TASK_AND_SUBTASK, TODO_DATA_INVALID
+    TODO_TASK_SUBTASK_NOT_MATCHING, TODO_SAME_TASK_AND_SUBTASK, TODO_DATA_INVALID, TODO_ALREADY_SUBTASK, \
+    TODO_ALREADY_PARENT_TASK
 from todo.models import Todo, Task, SubTask
 
 
@@ -75,6 +76,17 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
 class TaskForTodoListSerializer(serializers.ModelSerializer):
     sub_tasks = serializers.SerializerMethodField(source='sub_tasks', read_only=True)
 
+    def to_representation(self, obj):
+        """
+        If this serializer is user for task object(which is subtask) then remove 'sub_tasks' attribute.
+        :param obj: Task object
+        :return: representation of each field as dictionary
+        """
+        ret = super(TaskForTodoListSerializer, self).to_representation(obj)
+        if obj.is_subtask:
+            ret.pop('sub_tasks')
+        return ret
+
     def get_sub_tasks(self, obj):
         sub_tasks = [i.sub_task for i in obj.sub_tasks.select_related('sub_task').all()]
         return TaskForTodoListSerializer(sub_tasks, many=True).data
@@ -126,8 +138,8 @@ class CreateSubTaskUsingIdsSerializer(serializers.Serializer):
         except Task.DoesNotExist:
             raise serializers.ValidationError(TODO_TASK_ID_INVALID)
 
-        # if task and task.is_subtask:
-        #     raise serializers.ValidationError(TODO_ALREADY_SUBTASK)
+        if task and task.is_subtask:
+            raise serializers.ValidationError(TODO_ALREADY_SUBTASK)
 
         return task_id
 
@@ -146,14 +158,17 @@ class CreateSubTaskUsingIdsSerializer(serializers.Serializer):
         except Task.DoesNotExist:
             pass
 
-        if sub_task and sub_task.is_subtask:
-            raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_OTHER_TASK)
+        if sub_task and sub_task.sub_tasks and sub_task.sub_tasks.count() > 0:
+            raise serializers.ValidationError(TODO_ALREADY_PARENT_TASK)
 
         try:
             if sub_task and sub_task.parent_task and sub_task.parent_task.task == task:
                 raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_TASK)
         except Task.parent_task.RelatedObjectDoesNotExist:
             pass
+
+        if sub_task and sub_task.is_subtask:
+            raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_OTHER_TASK)
 
         if sub_task and task and sub_task.todo != task.todo:
             raise serializers.ValidationError(TODO_TASK_SUBTASK_NOT_MATCHING)
