@@ -239,7 +239,7 @@ class RestorePasswordConfirmApi(View):
                 logout(request)
                 return JsonResponse({'message': ACCOUNT_PASSWORD_RESET_SUCCESS})
             return JsonResponse({'error': ACCOUNT_PASSWORD_RESET_INVALID_LINK})
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             return JsonResponse({'error': ACCOUNT_PASSWORD_RESET_INVALID_LINK})
 
 
@@ -384,4 +384,3 @@ class SocialAuthSetPassword(LoginRequiredMixin, View):
             logout(request)
             return redirect('home')
         return render(request, ACCOUNT_SOCIAL_AUTH_SET_PASSWORD_PAGE, {'form': form})
-

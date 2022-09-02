@@ -1,4 +1,8 @@
 from rest_framework import serializers
+
+from core.constants import TODO_INVALID_DATE, TODO_INVALID_ID, TODO_CONTENT_REQUIRED, TODO_TASK_ID_INVALID, \
+    TODO_SUBTASK_ID_INVALID, TODO_ALREADY_SUBTASK_OF_TASK, TODO_ALREADY_SUBTASK_OF_OTHER_TASK, \
+    TODO_TASK_SUBTASK_NOT_MATCHING, TODO_SAME_TASK_AND_SUBTASK, TODO_DATA_INVALID
 from todo.models import Todo, Task, SubTask
 
 
@@ -9,14 +13,14 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
         allow_null=True,
         required=False,
         input_formats=['%d-%m-%Y'],
-        error_messages={'invalid': 'Date is invalid or does not match format DD-MM-YYYY'}
+        error_messages={'invalid': TODO_INVALID_DATE}
     )
     content = serializers.CharField(max_length=500, required=False, allow_null=True)
 
     def validate_todo(self, todo):
         user = self.context.get('user')
         if todo.owner != user:
-            raise serializers.ValidationError('Todo is invalid.')
+            raise serializers.ValidationError(TODO_INVALID_ID)
         return todo
 
     def validate(self, attrs):
@@ -28,7 +32,7 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
         """
         is_updating = self.context.get('is_updating')
         if not is_updating and not attrs.get('content'):
-            raise serializers.ValidationError({'content': 'This Field is required.'})
+            raise serializers.ValidationError({'content': TODO_CONTENT_REQUIRED})
         return attrs
 
     def update(self, instance, validated_data):
@@ -70,17 +74,6 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
 
 class TaskForTodoListSerializer(serializers.ModelSerializer):
     sub_tasks = serializers.SerializerMethodField(source='sub_tasks', read_only=True)
-
-    def to_representation(self, obj):
-        """
-        If this serializer is user for task object(which is subtask) then remove 'sub_tasks' attribute.
-        :param obj: Task object
-        :return: representation of each field as dictionary
-        """
-        ret = super(TaskForTodoListSerializer, self).to_representation(obj)
-        if obj.is_subtask:
-            ret.pop('sub_tasks')
-        return ret
 
     def get_sub_tasks(self, obj):
         sub_tasks = [i.sub_task for i in obj.sub_tasks.select_related('sub_task').all()]
@@ -131,10 +124,10 @@ class CreateSubTaskUsingIdsSerializer(serializers.Serializer):
         try:
             task = Task.objects.get(id=task_id, todo__owner=request.user)
         except Task.DoesNotExist:
-            raise serializers.ValidationError('This task id is not valid.')
+            raise serializers.ValidationError(TODO_TASK_ID_INVALID)
 
-        if task and task.is_subtask:
-            raise serializers.ValidationError('This task already sub-task.')
+        # if task and task.is_subtask:
+        #     raise serializers.ValidationError(TODO_ALREADY_SUBTASK)
 
         return task_id
 
@@ -146,37 +139,33 @@ class CreateSubTaskUsingIdsSerializer(serializers.Serializer):
         try:
             sub_task = Task.objects.get(id=sub_task_id, todo__owner=request.user)
         except Task.DoesNotExist:
-            raise serializers.ValidationError('This sub-task id is not valid.')
+            raise serializers.ValidationError(TODO_SUBTASK_ID_INVALID)
 
         try:
             task = Task.objects.get(id=task_id)
         except Task.DoesNotExist:
             pass
 
-        if sub_task and sub_task.sub_tasks and sub_task.sub_tasks.count() > 0:
-            raise serializers.ValidationError('The sub-task is parent task, so cannot become sub-task.')
+        if sub_task and sub_task.is_subtask:
+            raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_OTHER_TASK)
+
         try:
             if sub_task and sub_task.parent_task and sub_task.parent_task.task == task:
-                raise serializers.ValidationError('The sub-task is already sub-task of the task.')
-            elif sub_task and sub_task.is_subtask:
-                raise serializers.ValidationError('This sub-task is already sub-task of another task.')
+                raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_TASK)
         except Task.parent_task.RelatedObjectDoesNotExist:
-            if sub_task and sub_task.is_subtask:
-                raise serializers.ValidationError('This sub-task is already sub-task of another task.')
+            pass
 
-        if sub_task and sub_task.todo != task.todo:
-            raise serializers.ValidationError('The todo of task and sub-task is not matching.')
+        if sub_task and task and sub_task.todo != task.todo:
+            raise serializers.ValidationError(TODO_TASK_SUBTASK_NOT_MATCHING)
 
         if task and sub_task and task == sub_task:
-            raise serializers.ValidationError('The task and sub-task cannot be same.')
+            raise serializers.ValidationError(TODO_SAME_TASK_AND_SUBTASK)
 
         return sub_task_id
 
     def save(self):
         if self.errors:
-            raise ValueError(
-                "The SubTask could not be created because the data didn't validate."
-            )
+            raise ValueError(TODO_DATA_INVALID)
 
         sub_task_id = self.validated_data['sub_task']
         task = self.validated_data['task']
@@ -196,7 +185,7 @@ class CreateSubTaskUsingDataSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
         input_formats=['%d-%m-%Y'],
-        error_messages={'invalid': 'Date is invalid or does not match format DD-MM-YYYY'}
+        error_messages={'invalid': TODO_INVALID_DATE}
     )
 
     def validate_task(self, task_id):
@@ -206,13 +195,13 @@ class CreateSubTaskUsingDataSerializer(serializers.ModelSerializer):
         try:
             task = Task.objects.get(id=task_id, todo__owner=request.user)
         except Task.DoesNotExist:
-            raise serializers.ValidationError('This task id is not valid.')
+            raise serializers.ValidationError(TODO_TASK_ID_INVALID)
 
         if task and task.is_subtask:
-            raise serializers.ValidationError('This task is sub task of another task so it is invalid.')
+            raise serializers.ValidationError(TODO_ALREADY_SUBTASK_OF_OTHER_TASK)
 
         if task and todo.exists() and task.todo.id != todo.first().id:
-            raise serializers.ValidationError('Todo for task and sub task does not match.')
+            raise serializers.ValidationError(TODO_TASK_SUBTASK_NOT_MATCHING)
 
         return task_id
 

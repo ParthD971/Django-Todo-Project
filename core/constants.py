@@ -1,4 +1,3 @@
-
 # ACCOUNTS VARIABLE
 ACCOUNT_REGISTER_SUCCESS = 'Successfully registered. To activate please verify email.'
 ACCOUNT_ACTIVATION_SUCCESS = 'Successfully account activated.'
@@ -25,4 +24,24 @@ ACCOUNT_SOCIAL_AUTH_TWITTER = 'twitter'
 ACCOUNT_SOCIAL_AUTH_FACEBOOK = 'facebook'
 ACCOUNT_SOCIAL_AUTH_GOOGLE = 'google-oauth2'
 
+# ACCOUNTS FORMS VARIABLES
+ACCOUNT_ALREADY_EXIST_EMAIL = 'This email is already registered.'
+ACCOUNT_PASSWORD_NOT_MATCHING = 'The password is not matching.'
+ACCOUNT_EMAIL_NOT_REGISTERED = 'This email is not registered.'
+ACCOUNT_EMAIL_NOT_VERIFIED = 'The email is not verified.'
+ACCOUNT_INCORRECT_PASSWORD = 'The password is incorrect.'
+ACCOUNT_ALREADY_ACTIVE_EMAIL = 'This email is already active.'
+ACCOUNT_PASSWORD_REQUIRED = 'Password is Required.'
+
+# TODO_IN_DRF SERIALIZERS VARIABLES
+TODO_INVALID_DATE = 'Date is invalid or does not match format DD-MM-YYYY'
+TODO_INVALID_ID = 'Todo is invalid.'
+TODO_CONTENT_REQUIRED = 'Content field is required.'
+TODO_TASK_ID_INVALID = 'This task id is not valid.'
+TODO_SUBTASK_ID_INVALID = 'This sub-task id is not valid.'
+TODO_ALREADY_SUBTASK_OF_TASK = 'The sub-task is already sub-task of the task.'
+TODO_ALREADY_SUBTASK_OF_OTHER_TASK = 'This sub-task is already sub-task of another task.'
+TODO_TASK_SUBTASK_NOT_MATCHING = 'The todo of task and sub-task is not matching.'
+TODO_SAME_TASK_AND_SUBTASK = 'The task and sub-task cannot be same.'
+TODO_DATA_INVALID = "The SubTask could not be created because the data didn't validate."
 
