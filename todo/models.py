@@ -51,12 +51,21 @@ class Task(models.Model):
     is_subtask = models.BooleanField(default=False)
     completion_date = models.DateField(null=True)
     todo = models.ForeignKey(Todo, related_name='tasks', on_delete=models.CASCADE)
+    # parent = models.ForeignKey("self", related_name='tasks', on_delete=models.SET_NULL, default=None, null=True)
 
     def __str__(self):
         data = {
             'Todo': self.todo.id,
             'Current-task': self.id,
+            'is_subtask': self.is_subtask,
         }
+        # if self.parent:
+        #     data.update({'parent': self.parent.id})
+
+        sub_tasks = list(self.sub_tasks.values_list('sub_task_id', flat=True))
+        if sub_tasks:
+            data.update({'sub_tasks': sub_tasks})
+
         return " | ".join([k + ": " + str(v) for k, v in data.items()])
 
     def to_dict(self):
