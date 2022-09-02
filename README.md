@@ -84,6 +84,10 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
 ```
+
+This KEY and SECRET is obtained from respective social auth's developer console.
+For more information about [how to get credentials?](https://creativeminds.helpscoutdocs.com/article/551-social-login-how-to-create-google-api-client-id-and-client-secret)
+
 [Optional]
 ```console
 AUTH_USER_MODEL = 'accounts.User'
@@ -122,9 +126,9 @@ Paste this link in any of html page for authenticating through social auth.
 <a href="{% url 'social:begin' 'google-oauth2' %}">Google</a>
 ```
 
-### Development
+## Development
 
-#### Migrating Databases
+### Migrating Databases
 
 When changing models, we have to update the database. Migrations help us track changes.
 
@@ -133,8 +137,103 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-#### Running Server
+### Running Server
 
 ```console
 python manage.py runserver
 ```
+
+
+# Todo Project- Django Rest Framework
+
+## Clone Project
+```console
+git clone https://gitlab.com/inexture-python/pythonlearning/todo_social_auth_parth.git
+
+OR 
+
+git clone https://github.com/ParthD971/Django-Todo-Project.git
+
+```
+Current updated code is in `dev` branch. To change branch `git checkout dev`.
+
+## Install requirements.txt
+```console
+pip install -r requirements.txt
+```
+
+## Setup Redis
+See full installation and commands [here.](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-20-04)
+### Install Redis
+```console
+sudo apt install redis-server
+```
+
+### Start Redis
+```console
+redis-server
+```
+
+## Development
+
+### Migrating Databases
+
+When changing models, we have to update the database. Migrations help us track changes.
+
+```console
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### Running Server
+
+```console
+python manage.py runserver
+```
+
+### Running Celary
+
+```console
+celery -A core worker --pool=solo -l info
+```
+
+### Running Celary-Beat
+
+```console
+celery -A core beat -l INFO
+```
+
+## Swagger Documentation
+
+```console
+http://localhost:8000/api/doc/
+```
+
+[Postman Api Documentation](https://documenter.getpostman.com/view/20754219/VUxRPSH4)
+
+## Add Configurations to `.env` file in root directory.
+```console
+PASSWORD_RESET_TIMEOUT=3600
+EMAIL_HOST_USER=your_email
+EMAIL_HOST_PASSWORD=your_emails_password
+
+SOCIAL_AUTH_GITHUB_KEY=your_key
+SOCIAL_AUTH_GITHUB_SECRET=your_secret_key
+
+SOCIAL_AUTH_FACEBOOK_KEY=your_key
+SOCIAL_AUTH_FACEBOOK_SECRET=your_secret_key
+
+SOCIAL_AUTH_TWITTER_KEY=your_key
+SOCIAL_AUTH_TWITTER_SECRET=your_secret_key
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=your_key
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=your_secret_key
+
+
+REMINDER_SCHEDULE_DURATION=3600
+
+CACHE_TTL=120
+BUFFER_TIME=3600
+```
+
+
