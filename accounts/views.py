@@ -10,6 +10,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from social_django.models import UserSocialAuth
 
+from core.constants import ACCOUNT_REGISTER_SUCCESS, ACCOUNT_ACTIVATION_SUCCESS, ACCOUNT_ACTIVATION_FAILED, \
+    ACCOUNT_MODEL_BACKEND, ACCOUNT_LOGIN_SUCCESS, ACCOUNT_LOGIN_FAILED, ACCOUNT_LOGOUT_SUCCESS, \
+    ACCOUNT_RESENT_ACTIVATION, ACCOUNT_PASSWORD_RESET_SUCCESS, ACCOUNT_PASSWORD_RESET_LINK_SENT, \
+    ACCOUNT_PASSWORD_RESET_INVALID_LINK, ACCOUNT_DEACTIVATION_SUCCESS, ACCOUNT_LOGIN_PAGE, ACCOUNT_REGISTER_PAGE, \
+    ACCOUNT_SOCIAL_AUTH_GITHUB, ACCOUNT_SOCIAL_AUTH_TWITTER, ACCOUNT_SOCIAL_AUTH_FACEBOOK, ACCOUNT_SOCIAL_AUTH_GOOGLE, \
+    ACCOUNT_SOCIAL_AUTH_MANAGE_PAGE, ACCOUNT_SOCIAL_AUTH_SET_PASSWORD_PAGE
 from .forms import RegisterForm, LoginForm, ResendActivationCodeForm, PasswordResetForm, ForgotPasswordForm, \
     PasswordChangeForm
 from .mixin import LoginRequiredForApiMixin
@@ -47,7 +53,7 @@ class RegisterApi(View):
         send_activation_email(request, user.email, code)
 
         data = form.cleaned_data
-        data['status'] = 'Successfully registered. To activate please verify email.'
+        data['status'] = ACCOUNT_REGISTER_SUCCESS
         return JsonResponse(data)
 
 
@@ -65,12 +71,12 @@ class ActivateApi(View):
         act = get_object_or_404(Activation, code=code)
 
         if not act.is_valid():
-            return JsonResponse({'message': 'Activation code is expired. you can apply for resend activation code.'})
+            return JsonResponse({'message': ACCOUNT_ACTIVATION_FAILED})
 
         # Activate profile and Remove the activation record
         act.activate()
 
-        return JsonResponse({'message': 'Account activated.'})
+        return JsonResponse({'message': ACCOUNT_ACTIVATION_SUCCESS})
 
 
 class LoginApi(View):
@@ -104,9 +110,9 @@ class LoginApi(View):
 
         user = authenticate(email=email, password=password)
         if user:
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return JsonResponse({'message': 'Logged In.'})
-        return JsonResponse({'error': 'Invalid credentials.'})
+            login(request, user, backend=ACCOUNT_MODEL_BACKEND)
+            return JsonResponse({'message': ACCOUNT_LOGIN_SUCCESS})
+        return JsonResponse({'error': ACCOUNT_LOGIN_FAILED})
 
 
 class LogoutApi(LoginRequiredForApiMixin, View):
@@ -121,7 +127,7 @@ class LogoutApi(LoginRequiredForApiMixin, View):
     """
     def get(self, request, *args, **kwargs):
         logout(request)
-        return JsonResponse({'message': 'Logged Out.'})
+        return JsonResponse({'message': ACCOUNT_LOGOUT_SUCCESS})
 
 
 class ResendActivationCodeApi(View):
@@ -148,7 +154,7 @@ class ResendActivationCodeApi(View):
         code = user.get_activation_code()
         send_activation_email(request, user.email, code)
 
-        return JsonResponse({'message': 'Re-sent account activation code.'})
+        return JsonResponse({'message': ACCOUNT_RESENT_ACTIVATION})
 
 
 class PasswordResetApi(LoginRequiredForApiMixin, View):
@@ -173,7 +179,7 @@ class PasswordResetApi(LoginRequiredForApiMixin, View):
 
         form.save(user=request.user)
         logout(request)
-        return JsonResponse({'message': 'Password reset successful. You must login again.'})
+        return JsonResponse({'message': ACCOUNT_PASSWORD_RESET_SUCCESS})
 
 
 class ForgotPasswordApi(View):
@@ -201,7 +207,7 @@ class ForgotPasswordApi(View):
 
         send_reset_password_email(self.request, user.email, token, uid)
 
-        return JsonResponse({'message': 'Link for password reset sent to your email.'})
+        return JsonResponse({'message': ACCOUNT_PASSWORD_RESET_LINK_SENT})
 
 
 class RestorePasswordConfirmApi(View):
@@ -231,10 +237,10 @@ class RestorePasswordConfirmApi(View):
             if is_token_valid:
                 form.save(user=user)
                 logout(request)
-                return JsonResponse({'message': 'Password reset successful.'})
-            return JsonResponse({'error': 'Invalid Link.'})
+                return JsonResponse({'message': ACCOUNT_PASSWORD_RESET_SUCCESS})
+            return JsonResponse({'error': ACCOUNT_PASSWORD_RESET_INVALID_LINK})
         except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
-            return JsonResponse({'error': 'Invalid Link.'})
+            return JsonResponse({'error': ACCOUNT_PASSWORD_RESET_INVALID_LINK})
 
 
 class DeactivateAccountApi(LoginRequiredForApiMixin, View):
@@ -252,7 +258,7 @@ class DeactivateAccountApi(LoginRequiredForApiMixin, View):
         user.is_active = False
         user.save()
         logout(request)
-        return JsonResponse({'message': 'Account Deactivated.'})
+        return JsonResponse({'message': ACCOUNT_DEACTIVATION_SUCCESS})
 
 
 # Views
@@ -265,28 +271,22 @@ class LoginView(View):
     """
     def get(self, request):
         form = LoginForm()
-        return render(request, template_name='accounts/login.html', context={'form': form})
+        return render(request, template_name=ACCOUNT_LOGIN_PAGE, context={'form': form})
 
     def post(self, request):
         form = LoginForm(request.POST)
 
-        if not form.is_valid():
-            return render(request, template_name='accounts/login.html', context={'form': form})
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password')
 
-        email = form.cleaned_data.get('email')
-        password = form.cleaned_data.get('password')
+            user = authenticate(email=email, password=password)
+            if user:
+                login(request, user, backend=ACCOUNT_MODEL_BACKEND)
+                return redirect('home')
 
-        user = authenticate(email=email, password=password)
-        if user:
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return redirect('home')
-
-        messages.error(request, "Invalid credentials.")
-        return render(
-            request,
-            template_name='accounts/login.html',
-            context={'form': form}
-        )
+            messages.error(request, ACCOUNT_LOGIN_FAILED)
+        return render(request, template_name=ACCOUNT_LOGIN_PAGE, context={'form': form})
 
 
 class RegisterView(View):
@@ -299,18 +299,16 @@ class RegisterView(View):
     """
     def get(self, request):
         form = RegisterForm()
-        return render(request, template_name='accounts/register.html', context={'form': form})
+        return render(request, template_name=ACCOUNT_REGISTER_PAGE, context={'form': form})
 
     def post(self, request):
         form = RegisterForm(request.POST)
-        if not form.is_valid():
-            return render(request, template_name='accounts/register.html', context={'form': form})
-
-        user = form.save()
-        code = user.get_activation_code()
-        send_activation_email(request, user.email, code)
-
-        return redirect('home')
+        if form.is_valid():
+            user = form.save()
+            code = user.get_activation_code()
+            send_activation_email(request, user.email, code)
+            return redirect('home')
+        return render(request, template_name=ACCOUNT_REGISTER_PAGE, context={'form': form})
 
 
 class LogoutView(LoginRequiredMixin, View):
@@ -334,34 +332,38 @@ class SocialAuthManageSetting(LoginRequiredMixin, View):
         user = request.user
 
         try:
-            github_login = user.social_auth.get(provider='github')
+            github_login = user.social_auth.get(provider=ACCOUNT_SOCIAL_AUTH_GITHUB)
         except UserSocialAuth.DoesNotExist:
             github_login = None
 
         try:
-            twitter_login = user.social_auth.get(provider='twitter')
+            twitter_login = user.social_auth.get(provider=ACCOUNT_SOCIAL_AUTH_TWITTER)
         except UserSocialAuth.DoesNotExist:
             twitter_login = None
 
         try:
-            facebook_login = user.social_auth.get(provider='facebook')
+            facebook_login = user.social_auth.get(provider=ACCOUNT_SOCIAL_AUTH_FACEBOOK)
         except UserSocialAuth.DoesNotExist:
             facebook_login = None
 
         try:
-            google_login = user.social_auth.get(provider='google-oauth2')
+            google_login = user.social_auth.get(provider=ACCOUNT_SOCIAL_AUTH_GOOGLE)
         except UserSocialAuth.DoesNotExist:
             google_login = None
 
         can_disconnect = (user.social_auth.count() > 1 or user.has_usable_password())
 
-        return render(request, 'accounts/settings.html', {
-            'github_login': github_login,
-            'twitter_login': twitter_login,
-            'facebook_login': facebook_login,
-            'google_login': google_login,
-            'can_disconnect': can_disconnect
-        })
+        return render(
+            request,
+            template_name=ACCOUNT_SOCIAL_AUTH_MANAGE_PAGE,
+            context={
+                'github_login': github_login,
+                'twitter_login': twitter_login,
+                'facebook_login': facebook_login,
+                'google_login': google_login,
+                'can_disconnect': can_disconnect
+            }
+        )
 
 
 class SocialAuthSetPassword(LoginRequiredMixin, View):
@@ -373,7 +375,7 @@ class SocialAuthSetPassword(LoginRequiredMixin, View):
     """
     def get(self, request):
         form = PasswordChangeForm(user=request.user)
-        return render(request, 'accounts/password.html', {'form': form})
+        return render(request, ACCOUNT_SOCIAL_AUTH_SET_PASSWORD_PAGE, {'form': form})
 
     def post(self, request):
         form = PasswordChangeForm(request.POST, user=request.user)
@@ -381,5 +383,5 @@ class SocialAuthSetPassword(LoginRequiredMixin, View):
             form.save()
             logout(request)
             return redirect('home')
-        return render(request, 'accounts/password.html', {'form': form})
+        return render(request, ACCOUNT_SOCIAL_AUTH_SET_PASSWORD_PAGE, {'form': form})
 
