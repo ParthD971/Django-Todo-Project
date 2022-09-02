@@ -36,7 +36,7 @@ class CreateUpdateTaskForm(forms.ModelForm):
 
         # If task updated is main task and its is_complete status is changed to true
         main_task_is_completed_status = False
-        if self.instance.id is not None and \
+        if self.instance.id and \
                 not self.instance.is_subtask and \
                 not self.instance.is_completed and \
                 self.cleaned_data['is_completed']:
@@ -44,7 +44,7 @@ class CreateUpdateTaskForm(forms.ModelForm):
 
         # while updating, if task is subtask and changed to main task
         # or todo of task(is_subtask=True) is changed
-        if self.instance.id is not None and \
+        if self.instance.id and \
                 (self.instance.is_subtask and not is_subtask) or \
                 (self.instance.todo != todo and self.instance.is_subtask):
             self.instance.is_subtask = False
@@ -54,7 +54,7 @@ class CreateUpdateTaskForm(forms.ModelForm):
 
         # while updating, if task is subtask and changed to main task then 0 times loop
         # and when task is main task and its todo is changed then todos of all its sub-task is changed if any.
-        if self.instance.id is not None:
+        if self.instance.id:
             for sub_task_obj in self.instance.sub_tasks.all():
                 sub_task = sub_task_obj.sub_task
                 sub_task.todo = obj.todo

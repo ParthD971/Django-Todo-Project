@@ -53,7 +53,7 @@ class CreateUpdateTaskSerializer(serializers.ModelSerializer):
 
         # while updating, if task is subtask and changed to main task then 0 times loop
         # and when task is main task and its todo is changed then todos of all its sub-task is changed if any.
-        if self.instance is not None:
+        if self.instance:
             for sub_task_obj in self.instance.sub_tasks.select_related('sub_task').all():
                 sub_task = sub_task_obj.sub_task
                 sub_task.todo = obj.todo
