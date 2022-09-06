@@ -9,9 +9,11 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import logging.config
 from pathlib import Path
 import os
+
+from django.utils.log import DEFAULT_LOGGING
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -264,4 +266,68 @@ DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
     "SHOW_TOOLBAR_CALLBACK": lambda request: True,
 }
+
+# Disable Django's logging setup
+LOGGING_CONFIG = None
+
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'console': {
+            'format': '%(name)-12s %(levelname)-8s %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'console'
+        },
+        'debug': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/debug.log',
+            'formatter': 'file',
+        },
+        'info': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/info.log',
+            'formatter': 'file',
+        },
+        'warning': {
+            'level': 'WARN',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/warning.log',
+            'formatter': 'file',
+        },
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/error.log',
+            'formatter': 'file',
+        },
+        'critical': {
+            'level': 'CRITICAL',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/critical.log',
+            'formatter': 'file',
+        }
+    },
+    'loggers': {
+        '': {
+            'level': 'WARN',
+            'handlers': ['console', 'root'],
+        },
+        'extra': {
+            'level': 'INFO',
+            'handlers': ['console', 'info'],
+            'propagate': False,
+        }
+    },
+})
 

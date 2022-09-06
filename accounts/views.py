@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.tokens import default_token_generator
@@ -23,6 +25,8 @@ from .models import Activation, User
 from .utils import send_activation_email, send_reset_password_email
 from django.contrib.auth.mixins import LoginRequiredMixin
 
+logger = logging.getLogger('extra')
+
 
 # Apis
 class RegisterApi(View):
@@ -44,6 +48,7 @@ class RegisterApi(View):
     permission: Must Be Anonymous user
     """
     def post(self, request, *args, **kwargs):
+        logger.warning('Errorrrrrrrrrr')
         form = RegisterForm(request.POST)
         if not form.is_valid():
             return JsonResponse(dict(form.errors.items()))
@@ -101,7 +106,6 @@ class LoginApi(View):
 
     def post(self, request, *args, **kwargs):
         form = LoginForm(request.POST)
-
         if not form.is_valid():
             return JsonResponse(dict(form.errors.items()))
 
@@ -227,7 +231,6 @@ class RestorePasswordConfirmApi(View):
     """
     def post(self, request, uidb64=None, token=None, *args, **kwargs):
         form = PasswordResetForm(request.POST)
-
         if not form.is_valid():
             return JsonResponse(dict(form.errors.items()))
         try:
