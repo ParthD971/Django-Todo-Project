@@ -15,11 +15,11 @@ import os
 
 from django.utils.log import DEFAULT_LOGGING
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -31,7 +31,6 @@ SECRET_KEY = 'django-insecure-hu16$$hka#wtw)dv2jfy1k%*ip&r93ml7d@r+8qra#z8ad@_jd
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -99,7 +98,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -113,7 +111,6 @@ DATABASES = {
         'PORT': '',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -133,7 +130,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -145,7 +141,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
@@ -155,7 +150,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -204,7 +198,7 @@ SOCIAL_AUTH_TWITTER_SECRET = os.environ.get('SOCIAL_AUTH_TWITTER_SECRET')
 
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
-  'fields': 'id, name, email, age_range'
+    'fields': 'id, name, email, age_range'
 }
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
@@ -216,7 +210,6 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
-
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
@@ -270,7 +263,6 @@ DEBUG_TOOLBAR_CONFIG = {
 # Disable Django's logging setup
 LOGGING_CONFIG = None
 
-
 logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
@@ -287,6 +279,12 @@ logging.config.dictConfig({
             'class': 'logging.StreamHandler',
             'formatter': 'console'
         },
+        'root': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs/root.log',
+            'formatter': 'file',
+        },
         'debug': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
@@ -298,6 +296,7 @@ logging.config.dictConfig({
             'class': 'logging.FileHandler',
             'filename': BASE_DIR / 'logs/info.log',
             'formatter': 'file',
+            'filters': ['filter_info_level'],
         },
         'warning': {
             'level': 'WARN',
@@ -318,16 +317,36 @@ logging.config.dictConfig({
             'formatter': 'file',
         }
     },
-    'loggers': {
-        '': {
-            'level': 'WARN',
-            'handlers': ['console', 'root'],
+    'filters': {
+        'filter_info_level': {
+            '()': 'core.logging.FilterLevels',
+            'filter_levels': [
+                "INFO"
+            ]
         },
-        'extra': {
-            'level': 'INFO',
-            'handlers': ['console', 'info'],
+        'filter_error_level': {
+            '()': 'core.logging.FilterLevels',
+            'filter_levels': [
+                "ERROR"
+            ]
+        },
+        'filter_warning_level': {
+            '()': 'core.logging.FilterLevels',
+            'filter_levels': [
+                "WARNING"
+            ]
+        }
+    },
+    'loggers': {
+        'django': {
+            'level': 'WARN',
+            'handlers': ['root'],
+            'propagate': True
+        },
+        'accounts': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'debug', 'info', 'warning', 'error', 'critical'],
             'propagate': False,
         }
     },
 })
-

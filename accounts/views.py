@@ -25,7 +25,7 @@ from .models import Activation, User
 from .utils import send_activation_email, send_reset_password_email
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-logger = logging.getLogger('extra')
+logger = logging.getLogger('accounts')
 
 
 # Apis
@@ -48,12 +48,16 @@ class RegisterApi(View):
     permission: Must Be Anonymous user
     """
     def post(self, request, *args, **kwargs):
-        logger.warning('Errorrrrrrrrrr')
         form = RegisterForm(request.POST)
         if not form.is_valid():
+            logger.info('RegisterApi: Form is invalid.')
+            logger.error('RegisterApi: Form is invalid.')
+            logger.debug('Error fields: ' + ', '.join(form.errors.keys()))
             return JsonResponse(dict(form.errors.items()))
 
+        logger.info('RegisterApi: Form is valid.')
         user = form.save()
+        logger.debug(f'User saved. User email is {user.email}')
         code = user.get_activation_code()
         send_activation_email(request, user.email, code)
 
@@ -112,10 +116,11 @@ class LoginApi(View):
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
 
-        user = authenticate(email=email, password=password)
-        if user:
+        if user := authenticate(email=email, password=password):
             login(request, user, backend=ACCOUNT_MODEL_BACKEND)
             return JsonResponse({'message': ACCOUNT_LOGIN_SUCCESS})
+
+        logger.error(f'User is valid but cant authenticate. User id: {user.id}, user email is {user.email}')
         return JsonResponse({'error': ACCOUNT_LOGIN_FAILED})
 
 
@@ -236,8 +241,7 @@ class RestorePasswordConfirmApi(View):
         try:
             uid = urlsafe_base64_decode(uidb64)
             user = User.objects.get(pk=uid)
-            is_token_valid = default_token_generator.check_token(user, token)
-            if is_token_valid:
+            if default_token_generator.check_token(user, token):
                 form.save(user=user)
                 logout(request)
                 return JsonResponse({'message': ACCOUNT_PASSWORD_RESET_SUCCESS})
@@ -278,16 +282,14 @@ class LoginView(View):
 
     def post(self, request):
         form = LoginForm(request.POST)
-
         if form.is_valid():
             email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-
-            user = authenticate(email=email, password=password)
-            if user:
+            if user := authenticate(email=email, password=password):
                 login(request, user, backend=ACCOUNT_MODEL_BACKEND)
                 return redirect('home')
 
+            logger.error(f'User is valid but cant authenticate. User id: {user.id}, user email is {user.email}')
             messages.error(request, ACCOUNT_LOGIN_FAILED)
         return render(request, template_name=ACCOUNT_LOGIN_PAGE, context={'form': form})
 
